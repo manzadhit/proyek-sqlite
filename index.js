@@ -1,9 +1,9 @@
-  const sqlite3 = require("sqlite3").verbose();
-  const db = new sqlite3.Database("database_karyawan.db");
+const sqlite3 = require("sqlite3").verbose();
+const db = new sqlite3.Database("database_karyawan.db");
 
-  const createTables = async () => {
-    try {
-      await db.exec(`
+const createTables = async () => {
+  try {
+    await db.exec(`
         CREATE TABLE IF NOT EXISTS Karyawan (
           IDKaryawan INTEGER PRIMARY KEY,
           Nama TEXT NOT NULL,
@@ -11,8 +11,8 @@
           Jabatan TEXT 
         );
       `);
-      
-      await db.exec(`
+
+    await db.exec(`
         CREATE TABLE IF NOT EXISTS Proyek (
           IDProyek INTEGER PRIMARY KEY,
           NamaProyek TEXT NOT NULL,
@@ -21,7 +21,7 @@
         );
       `);
 
-      await db.exec(`
+    await db.exec(`
         CREATE TABLE IF NOT EXISTS Pekerjaan (
           IDPekerjaan INTEGER PRIMARY KEY,
           NamaPekerjaan TEXT NOT NULL,
@@ -32,10 +32,121 @@
         );
       `);
 
-      console.log("table berhasil dibuat");
-    } catch (error) {
-      console.log("gagal membuat table :", error.message);
-    }
+    console.log("table berhasil dibuat");
+  } catch (error) {
+    console.log("gagal membuat table :", error.message);
   }
+};
 
-  createTables();
+const insertData = async () => {
+  try {
+    await db.exec("BEGIN"); // memulai transaksi
+
+    await db.run('INSERT INTO Karyawan (Nama, Usia, Jabatan) VALUES (?, ?, ?)', ['John Doe', 30, 'Manager']);
+    await db.run('INSERT INTO Karyawan (Nama, Usia, Jabatan) VALUES (?, ?, ?)', ['Jane Smith', 25, 'Programmer']);
+    await db.run('INSERT INTO Karyawan (Nama, Usia, Jabatan) VALUES (?, ?, ?)', ['Bob Johnson', 35, 'Sales']);
+    await db.run('INSERT INTO Karyawan (Nama, Usia, Jabatan) VALUES (?, ?, ?)', ['Alice Brown', 28, 'Designer']);
+
+    await db.run('INSERT INTO Proyek (NamaProyek, IDKaryawanPenanggung) VALUES (?, ?)', ['Proyek A', 2]);
+    await db.run('INSERT INTO Proyek (NamaProyek, IDKaryawanPenanggung) VALUES (?, ?)', ['Proyek B', 4]);
+    await db.run('INSERT INTO Proyek (NamaProyek, IDKaryawanPenanggung) VALUES (?, ?)', ['Proyek C', 1]);
+
+    await db.run('INSERT INTO Pekerjaan (NamaPekerjaan, IDProyek, IDKaryawan) VALUES (?, ?, ?)', ['Pekerjaan 1', 1, 2]);
+    await db.run('INSERT INTO Pekerjaan (NamaPekerjaan, IDProyek, IDKaryawan) VALUES (?, ?, ?)', ['Pekerjaan 2', 1, 2]);
+    await db.run('INSERT INTO Pekerjaan (NamaPekerjaan, IDProyek, IDKaryawan) VALUES (?, ?, ?)', ['Pekerjaan 3', 1, 4]);
+    await db.run('INSERT INTO Pekerjaan (NamaPekerjaan, IDProyek, IDKaryawan) VALUES (?, ?, ?)', ['Pekerjaan 4', 2, 4]);
+    await db.run('INSERT INTO Pekerjaan (NamaPekerjaan, IDProyek, IDKaryawan) VALUES (?, ?, ?)', ['Pekerjaan 5', 3, 1]);
+
+    await db.exec("COMMIT"); // menyelesaikan transaksi
+
+    console.log("data berhasil dimasukan");
+  } catch (error) {
+    await db.exec("ROLLBACK"); // membatalkan transaksi jika terjadi kesalahan
+    console.log("Gagal memasukan data :", error.message);
+  }
+};
+
+const updateData = async () => {
+  try {
+    await db.exec("BEGIN");
+
+    await db.run(`
+      UPDATE Karyawan
+      SET Nama = 'Nyoman', Usia = 20, Jabatan = 'Programmer'
+      WHERE Nama = 'Jane Smith'
+    `)
+
+    await db.run(`
+    UPDATE Proyek
+      SET NamaProyek = 'Buat Portofolio', IDKaryawanPenanggung = 2
+      WHERE NamaProyek = 'Proyek A'
+    `);
+
+    await db.run(`
+    UPDATE Pekerjaan
+      SET NamaPekerjaan = 'Buat website',IDProyek = 1, IDKaryawanPenanggung = 2
+      WHERE NamaPekerjaan = 'Pekerjaan 1'
+    `);
+
+    await db.exec("COMMIT");
+    console.log("Berhasil memperbarui data");
+  } catch (error) {
+    await db.exec("ROLLBACK");
+    console.log("Gagal memperbarui data :", error.message);
+  }
+}
+
+const deleteData = async() => {
+  try {
+    db.exec("BEGIN");
+
+    db.run(`
+    DELETE FROM Karyawan
+    WHERE IDKaryawan = 2
+    `);
+    db.run(`
+    DELETE FROM Proyek
+    WHERE IDProyek = 2
+    `);
+    db.run(`
+    DELETE FROM Pekerjaan
+    WHERE IDPekerjaan = 2
+    `);
+
+    db.exec("COMMIT");
+    console.log("Berhasil menghapus data");
+  } catch (error) {
+    await db.exec("ROLLBACK");
+    console.log("Gagal menghapus data :", error.message);
+  }
+}
+
+const displayData = async() => {
+  try {
+    const karyawanRows = await db.all("SELECT * FROM Karyawan");
+    console.log("Data karyawan :");
+    console.table(karyawanRows);
+
+    const proyekRows = await db.all("SELECT * FROM Proyek");
+    console.log("Data karyawan :");
+    console.table(proyekRows);
+
+    const PekerjaanRows = await db.all("SELECT * FROM Pekerjaan");
+    console.log("Data karyawan :");
+    console.table(PekerjaanRows);
+  } catch (error) {
+    console.log("Gagal mengambil data :", error.message);
+  }
+}
+
+const closeDatabase = async() => {
+  try {
+    await db.close();
+    console.log("Koneksi ke database ditutup");
+  } catch (error) {
+    console.log("Gagal menutup koneksi :", error.message);
+  }
+}
+
+
+module.exports = { createTables, insertData, updateData,  displayData, deleteData, closeDatabase};
