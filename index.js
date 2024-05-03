@@ -117,13 +117,13 @@ const updateData = async () => {
 
     await db.run(`
       UPDATE Proyek
-      SET NamaProyek = 'Buat Portofolio', IDKaryawanPenanggung = 2
+      SET NamaProyek = 'Buat Portofolio', IDKaryawanPenanggung = 3
       WHERE NamaProyek = 'Proyek A'
     `);
 
     await db.run(`
       UPDATE Pekerjaan
-      SET NamaPekerjaan = 'Buat website',IDProyek = 3, IDKaryawan = 2
+      SET NamaPekerjaan = 'Buat website',IDProyek = 3, IDKaryawan = 3
       WHERE NamaPekerjaan = 'Pekerjaan 1'
     `);
 
@@ -199,6 +199,30 @@ const displayData = async () => {
 
 displayData()
 
+const displayEmployeeProjectAndTask = async() => {
+  try {
+    await db.all(`
+      SELECT Karyawan.Nama, Proyek.NamaProyek, Pekerjaan.NamaPekerjaan
+      FROM Karyawan
+      JOIN Proyek ON Karyawan.IDKaryawan = Proyek.IDKaryawanPenanggung 
+      JOIN Pekerjaan ON Proyek.IDProyek = Pekerjaan.IDProyek
+    `, (err, data) => {
+      if(err) {
+        return console.error(err);
+      } else {
+        console.log("Data Karyawan, Proyek, dan Pekerjaan");
+        console.table(data);
+      }
+    });
+
+  } catch (error) {
+    console.log("Gagal Menampilkan Data :", error.message);
+  }
+}
+
+// displayEmployeeProjectAndTask()
+
+
 const deleteAllData = async () => {
   try {
     await db.exec("BEGIN");
@@ -223,4 +247,5 @@ const closeDatabase = async () => {
     console.log("Gagal menutup koneksi :", error.message);
   }
 };
+// closeDatabase()
 
