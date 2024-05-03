@@ -38,6 +38,8 @@ const createTables = async () => {
   }
 };
 
+// createTables()
+
 const insertData = async () => {
   try {
     await db.exec("BEGIN");
@@ -101,6 +103,8 @@ const insertData = async () => {
   }
 };
 
+// insertData()
+
 const updateData = async () => {
   try {
     await db.exec("BEGIN");
@@ -119,7 +123,7 @@ const updateData = async () => {
 
     await db.run(`
       UPDATE Pekerjaan
-      SET NamaPekerjaan = 'Buat website',IDProyek = 1, IDKaryawan = 2
+      SET NamaPekerjaan = 'Buat website',IDProyek = 3, IDKaryawan = 2
       WHERE NamaPekerjaan = 'Pekerjaan 1'
     `);
 
@@ -130,6 +134,8 @@ const updateData = async () => {
     console.log("Gagal memperbarui data :", error.message);
   }
 };
+
+// updateData()
 
 const deleteData = async () => {
   try {
@@ -142,12 +148,12 @@ const deleteData = async () => {
 
     await db.run(`
       DELETE FROM Proyek
-      WHERE IDProyek = 2
+      WHERE IDKaryawanPenanggung = 2
     `);
 
     await db.run(`
       DELETE FROM Pekerjaan
-      WHERE IDPekerjaan = 2
+      WHERE IDKaryawan = 2
     `);
 
     await db.exec("COMMIT");
@@ -158,23 +164,40 @@ const deleteData = async () => {
   }
 };
 
+// deleteData()
+
 const displayData = async () => {
   try {
-    const karyawanRows = await db.all("SELECT * FROM Karyawan");
-    console.log("Data karyawan :");
-    console.table(karyawanRows);
-
-    const proyekRows = await db.all("SELECT * FROM Proyek");
-    console.log("Data proyek :");
-    console.table(proyekRows);
-
-    const pekerjaanRows = await db.all("SELECT * FROM Pekerjaan");
-    console.log("Data pekerjaan :");
-    console.table(pekerjaanRows);
+    await db.all("SELECT * FROM Karyawan", (err, data) => {
+      if(err) {
+        return console.error(err);
+      } else {
+        console.log("Data karyawan :");
+        console.table(data);
+      }
+    });
+    await db.all("SELECT * FROM Proyek", (err, data) => {
+      if(err) {
+        return console.error(err);
+      } else {
+        console.log("Data Proyek :");
+        console.table(data);
+      }
+    });
+    await db.all("SELECT * FROM Pekerjaan", (err, data) => {
+      if(err) {
+        return console.error(err);
+      } else {
+        console.log("Data Pekerjaan :");
+        console.table(data);
+      }
+    });
   } catch (error) {
     console.log("Gagal mengambil data :", error.message);
   }
 };
+
+displayData()
 
 const deleteAllData = async () => {
   try {
@@ -189,6 +212,8 @@ const deleteAllData = async () => {
     console.log("Gagal menghapus semua data :", error.message);
   }
 };
+
+// deleteAllData()
 
 const closeDatabase = async () => {
   try {
